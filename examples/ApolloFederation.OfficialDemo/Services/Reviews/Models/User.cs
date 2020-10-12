@@ -6,7 +6,7 @@ using Reviews.Data;
 
 namespace Reviews.Models
 {
-    [ExtendObjectType("user")]
+    [ForeignServiceTypeExtension]
     public class User
     {
         [Key][External]

@@ -3,9 +3,13 @@ using System.Linq;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -14,6 +18,7 @@ namespace HotChocolate.ApolloFederation
     internal class EntityTypeInterceptor : TypeInterceptor
     {
         private readonly List<ObjectType> _entityTypes = new List<ObjectType>();
+        private static readonly object _empty = new object();
 
         public override bool TriggerAggregations { get; } = true;
 
@@ -40,6 +45,11 @@ namespace HotChocolate.ApolloFederation
             }
         }
 
+        public override void OnAfterCompleteType(ITypeCompletionContext completionContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
+        {
+            //
+        }
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
@@ -52,6 +62,8 @@ namespace HotChocolate.ApolloFederation
             AddServiceTypeToQueryType(
                 completionContext,
                 definition);
+
+
         }
 
         private void AddServiceTypeToQueryType(
@@ -61,13 +73,30 @@ namespace HotChocolate.ApolloFederation
             if (completionContext.IsQueryType == true &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
             {
-                var fieldDescriptor = ObjectFieldDescriptor.New(
+                var serviceFieldDescriptor = ObjectFieldDescriptor.New(
                     completionContext.DescriptorContext,
                     WellKnownFieldNames.Service);
-                fieldDescriptor
+                serviceFieldDescriptor
                     .Type<NonNullType<ServiceType>>()
-                    .Resolver(default(object));
-                objectTypeDefinition.Fields.Add(fieldDescriptor.CreateDefinition());
+                    .Resolve(_empty);
+                objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
+
+                var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
+                    completionContext.DescriptorContext,
+                    WellKnownFieldNames.Entities);
+                entitiesFieldDescriptor
+                    .Type<NonNullType<ListType<EntityType>>>()
+                    .Argument(
+                        WellKnownArgumentNames.Representations,
+                        descriptor =>
+                            descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>()
+                    )
+                    .Resolve(c => EntitiesResolver._Entities(
+                        c.Schema,
+                        c.ArgumentValue<IReadOnlyList<Representation>>(WellKnownArgumentNames.Representations),
+                        c
+                    ));
+                objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
             }
         }
 

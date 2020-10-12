@@ -165,4 +165,10 @@
   <data name="ServiceType_Description" xml:space="preserve">
     <value>This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec.</value>
   </data>
+  <data name="ThrowHelper_EntityResolver_NoEntityResolverFound" xml:space="preserve">
+    <value>The apollo gateway tries to resolve an entity for which no EntityResolver method was found.</value>
+  </data>
+  <data name="EntityResolver_MustBeMethod" xml:space="preserve">
+    <value>The EntityResolver must be a method. Please check if the EntityResolverAttribute is correctly set to a method.</value>
+  </data>
 </root>

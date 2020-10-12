@@ -25,6 +25,19 @@ namespace HotChocolate.ApolloFederation
                 fieldSetType);
 
         /// <summary>
+        /// No ReferenceResolver was found for a type that is decorated with a ReferenceResolverAttribute.
+        /// </summary>
+        public static SchemaException ReferenceResolverAttribute_EntityResolverNotFound(
+            Type type,
+            string referenceResolver) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    referenceResolver)
+                .Build());
+
+        /// <summary>
         /// The runtime type is not supported by the scalars ParseValue method.
         /// </summary>
         public static SerializationException FieldSet_CannotParseValue(
@@ -50,6 +63,17 @@ namespace HotChocolate.ApolloFederation
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_EntityType_NoEntities)
                     .SetCode(ErrorCodes.Apollo.Federation.NoEntitiesDeclared)
+                    .Build());
+
+        /// <summary>
+        /// The apollo gateway tries to resolve an entity for which no
+        /// EntityResolver method was found.
+        /// </summary>
+        public static SchemaException EntityResolver_NoResolverFound() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(ThrowHelper_EntityResolver_NoEntityResolverFound)
+                    .SetCode(ErrorCodes.Apollo.Federation.NoEntityResolverFound)
                     .Build());
 
         /// <summary>

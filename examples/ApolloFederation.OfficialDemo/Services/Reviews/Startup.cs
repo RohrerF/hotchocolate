@@ -38,6 +38,8 @@ namespace Reviews
 
             app.UseRouting();
 
+            app.UseMiddleware<meh>();
+
             app.UseEndpoints(
                 endpoints =>
                 {

@@ -7,7 +7,7 @@ using Reviews.Data;
 
 namespace Reviews.Models
 {
-    [ExtendObjectType("product")]
+    [ForeignServiceTypeExtension]
     public class Product
     {
         [Key][External]
