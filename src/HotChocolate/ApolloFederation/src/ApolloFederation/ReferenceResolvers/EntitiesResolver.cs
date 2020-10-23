@@ -19,19 +19,14 @@ namespace HotChocolate.ApolloFederation
                 var representationType = schema.Types.SingleOrDefault(type => type.Name == representation.Typename && type.ContextData.ContainsKey(WellKnownContextData.ExtendMarker));
                 if (representationType != null)
                 {
-                    // GetFactory from contextdata
-                    // var obj = invoke with representation
-                    // ret.add(obj)
-                    var runtimeType = representationType.ToRuntimeType();
-                    var obj = Activator.CreateInstance(runtimeType);
-                    foreach (ObjectFieldNode objectFieldNode in representation.Data.Fields)
+                    if (representationType.ContextData.TryGetValue(WellKnownContextData.EntityResolver, out object? obj) && obj is Delegate d)
                     {
-                        var nameValue = objectFieldNode.Name.Value;
-                        var propName = nameValue.First().ToString().ToUpper() + nameValue.Substring(1);
-                        PropertyInfo? prop = runtimeType.GetProperty(propName);
-                        prop?.SetValue (obj, objectFieldNode.Value.Value, null);
+                        ret.Add(d.DynamicInvoke(representation));
                     }
-                    ret.Add(obj);
+                    else
+                    {
+                        throw new Exception();
+                    }
                 }
                 else
                 {
@@ -40,7 +35,7 @@ namespace HotChocolate.ApolloFederation
                         o is FieldResolverDelegate resolver)
                     {
                         c.SetLocalValue("data", representation.Data);
-                        ret.Add(await resolver.Invoke(c));
+                        ret.Add(await resolver.Invoke(c).ConfigureAwait(false));
                     }
                 }
             }

@@ -1,15 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -45,9 +44,14 @@ namespace HotChocolate.ApolloFederation
             }
         }
 
-        public override void OnAfterCompleteType(ITypeCompletionContext completionContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
+        public override void OnAfterCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
-            //
+            AddFactoryMethodToContext(
+                completionContext,
+                contextData);
         }
 
         public override void OnBeforeCompleteType(
@@ -62,8 +66,59 @@ namespace HotChocolate.ApolloFederation
             AddServiceTypeToQueryType(
                 completionContext,
                 definition);
+        }
 
+        private void AddFactoryMethodToContext(
+            ITypeCompletionContext completionContext,
+            IDictionary<string, object?> contextData)
+        {
+            if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
+                rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
+            {
+                var memberInfos = rt.GetMembers().Where(member => member.IsDefined(typeof(ExternalAttribute)));
+                var representationArgument = Expression.Parameter(typeof(Representation));
 
+                // Create bind expressions for all properties of a type
+                // that were marked as external. If they are not passed, the
+                // properties are filled with null.
+                var bindExpressions = memberInfos.Select(
+                    memberInfo =>
+                    {
+                        // Representations passed from other services must not be wholly defined.
+                        // Fill the properties that were passed and pass null if a property
+                        // wasn't passed.
+                        Func<ObjectFieldNode?, object?> objectOrNull = field =>
+                            field == null
+                                ? null
+                                : field.Value.Value;
+
+                        Expression<Func<Representation, object?>> valueGetterFunc =
+                            (representation) =>
+                                objectOrNull(representation.Data.Fields
+                                    .SingleOrDefault(item =>
+                                        item.Name.Value.Equals(memberInfo.Name, StringComparison.OrdinalIgnoreCase)));
+
+                        if (memberInfo is PropertyInfo pi)
+                        {
+                            return Expression.Bind(
+                                memberInfo,
+                                Expression.Convert(Expression.Invoke(
+                                    valueGetterFunc,
+                                    representationArgument
+                                ), pi.PropertyType)
+                            );
+                        }
+                        throw new Exception(); // TODO: Exception helper
+                    }
+                );
+
+                var objectFactoryMethodExpression = Expression.Lambda(
+                    Expression.MemberInit(Expression.New(rt), bindExpressions),
+                    representationArgument
+                );
+
+                contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
+            }
         }
 
         private void AddServiceTypeToQueryType(
