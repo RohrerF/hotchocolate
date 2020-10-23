@@ -19,6 +19,9 @@ namespace HotChocolate.ApolloFederation
                 var representationType = schema.Types.SingleOrDefault(type => type.Name == representation.Typename && type.ContextData.ContainsKey(WellKnownContextData.ExtendMarker));
                 if (representationType != null)
                 {
+                    // GetFactory from contextdata
+                    // var obj = invoke with representation
+                    // ret.add(obj)
                     var runtimeType = representationType.ToRuntimeType();
                     var obj = Activator.CreateInstance(runtimeType);
                     foreach (ObjectFieldNode objectFieldNode in representation.Data.Fields)

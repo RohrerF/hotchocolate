@@ -36,7 +36,7 @@ namespace HotChocolate
             builder.AddType<KeyDirectiveType>();
             builder.AddType<FieldSetType>();
             builder.AddType<RequiresDirectiveType>();
-            builder.TryAddTypeInterceptor<EntityTypeInterceptor>();
+            builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
             return builder;
         }
     }

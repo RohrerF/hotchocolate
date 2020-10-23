@@ -15,7 +15,7 @@ using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
-    internal class EntityTypeInterceptor : TypeInterceptor
+    internal class FederationTypeInterceptor : TypeInterceptor
     {
         private readonly List<ObjectType> _entityTypes = new List<ObjectType>();
         private static readonly object _empty = new object();
