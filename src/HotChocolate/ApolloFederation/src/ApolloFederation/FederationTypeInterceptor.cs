@@ -108,7 +108,7 @@ namespace HotChocolate.ApolloFederation
                                 ), pi.PropertyType)
                             );
                         }
-                        throw new Exception(); // TODO: Exception helper
+                        throw ExternalAttribute_InvalidTarget(rt, memberInfo);
                     }
                 );
 

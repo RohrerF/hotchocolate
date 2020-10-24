@@ -87,9 +87,9 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ThrowHelper_FieldSet_CannotParseValue {
+        internal static string ThrowHelper_Scalar_CannotParseValue {
             get {
-                return ResourceManager.GetString("ThrowHelper_FieldSet_CannotParseValue", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_Scalar_CannotParseValue", resourceCulture);
             }
         }
         
@@ -150,6 +150,18 @@ namespace HotChocolate.ApolloFederation.Properties {
         internal static string EntityResolver_MustBeMethod {
             get {
                 return ResourceManager.GetString("EntityResolver_MustBeMethod", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Any_HasInvalidFormat {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Any_HasInvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string Any_Description {
+            get {
+                return ResourceManager.GetString("Any_Description", resourceCulture);
             }
         }
     }

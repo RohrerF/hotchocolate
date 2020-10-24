@@ -138,7 +138,7 @@
   <data name="ThrowHelper_FieldSet_HasInvalidFormat" xml:space="preserve">
     <value>The fieldset has an invalid format.</value>
   </data>
-  <data name="ThrowHelper_FieldSet_CannotParseValue" xml:space="preserve">
+  <data name="ThrowHelper_Scalar_CannotParseValue" xml:space="preserve">
     <value>{0} cannot parse the given value of type `{1}`</value>
   </data>
   <data name="ThrowHelper_Key_FieldSet_CannotBeEmpty" xml:space="preserve">
@@ -170,5 +170,11 @@
   </data>
   <data name="EntityResolver_MustBeMethod" xml:space="preserve">
     <value>The EntityResolver must be a method. Please check if the EntityResolverAttribute is correctly set to a method.</value>
+  </data>
+  <data name="ThrowHelper_Any_HasInvalidFormat" xml:space="preserve">
+    <value>The given any representation has an invalid format.</value>
+  </data>
+  <data name="Any_Description" xml:space="preserve">
+    <value>The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema.</value>
   </data>
 </root>

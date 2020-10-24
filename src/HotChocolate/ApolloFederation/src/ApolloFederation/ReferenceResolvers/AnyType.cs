@@ -2,33 +2,66 @@ using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
+    /// <summary>
+    /// The _Any scalar is used to pass representations of entities
+    /// from external services into the root _entities field for execution.
+    /// </summary>
     public sealed class AnyType: ScalarType<Representation, ObjectValueNode>
     {
+        private const string TypeNameField = "__typename";
+        private const string DataField = "data";
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="AnyType"/>.
+        /// </summary>
         public AnyType()
             : this(WellKnownTypeNames.Any)
         {
         }
 
-        protected override bool IsInstanceOfType(ObjectValueNode valueSyntax)
-        {
-            return valueSyntax.Fields.Any(field => field.Name.Value == "__typename");
-        }
-
+        /// <summary>
+        /// Initializes a new instance of <see cref="AnyType"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The name the scalar shall have.
+        /// </param>
+        /// <param name="bind">
+        /// Defines if this scalar shall bind implicitly to <see cref="SelectionSetNode"/>.
+        /// </param>
         public AnyType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
-            Description = FederationResources.FieldsetType_Description; // TODO
+            Description = FederationResources.Any_Description;
         }
 
+
+        /// <inheritdoc />
+        protected override bool IsInstanceOfType(ObjectValueNode valueSyntax)
+        {
+            return valueSyntax.Fields.Any(field => field.Name.Value == TypeNameField);
+        }
+
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is Representation representation)
+            {
+                return ParseValue(representation);
+            }
+
+            throw Scalar_CannotParseValue(this, resultValue.GetType());
         }
 
+        /// <inheritdoc />
         protected override Representation ParseLiteral(ObjectValueNode valueSyntax)
         {
             if (valueSyntax.Fields.FirstOrDefault(field => field.Name.Value == "__typename") is {} typename && typename.Value is StringValueNode s)
@@ -39,22 +72,54 @@ namespace HotChocolate.ApolloFederation
                     Data = valueSyntax
                 };
             }
-            throw new System.NotImplementedException();
+
+            throw Any_InvalidFormat(this);
         }
 
+        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            throw new System.NotImplementedException();
+            if (runtimeValue is null)
+            {
+                resultValue = null;
+                return true;
+            }
+
+            if (runtimeValue is Representation)
+            {
+                resultValue = runtimeValue;
+                return true;
+            }
+
+            resultValue = null;
+            return false;
         }
 
+        /// <inheritdoc />
         protected override ObjectValueNode ParseValue(Representation runtimeValue)
         {
-            throw new System.NotImplementedException();
-            // return ObjectValueNode(runtimeValue);
+            return new ObjectValueNode(
+                new ObjectFieldNode(TypeNameField, runtimeValue.Typename),
+                new ObjectFieldNode(DataField, runtimeValue.Data)
+            );
         }
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            throw new System.NotImplementedException();
+            if (resultValue is null)
+            {
+                runtimeValue = null;
+                return true;
+            }
+
+            if (resultValue is Representation)
+            {
+                runtimeValue = resultValue;
+                return true;
+            }
+
+            runtimeValue = null;
+            return false;
         }
     }
 }
