@@ -1,6 +1,7 @@
 using HotChocolate;
+using HotChocolate.ApolloFederation;
 using Reviews.Data;
-using Reviews.Models;
+using Review = Reviews.Models.Review;
 
 namespace Reviews
 {
@@ -13,6 +14,11 @@ namespace Reviews
             string id)
         {
             return reviewRepository.GetById(id);
+        }
+
+        public bool Test(Representation representation)
+        {
+            return true;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
@@ -12,8 +13,8 @@ namespace HotChocolate.ApolloFederation
     /// </summary>
     public sealed class AnyType: ScalarType<Representation, ObjectValueNode>
     {
-        private const string TypeNameField = "__typename";
-        private const string DataField = "data";
+        public const string TypeNameField = "__typename";
+        public const string DataField = "data";
 
         /// <summary>
         /// Initializes a new instance of <see cref="AnyType"/>.
@@ -87,7 +88,7 @@ namespace HotChocolate.ApolloFederation
 
             if (runtimeValue is Representation)
             {
-                resultValue = runtimeValue;
+                resultValue = ParseValue(runtimeValue);
                 return true;
             }
 
@@ -99,10 +100,10 @@ namespace HotChocolate.ApolloFederation
         protected override ObjectValueNode ParseValue(Representation runtimeValue)
         {
             return new ObjectValueNode(
-                new ObjectFieldNode(TypeNameField, runtimeValue.Typename),
-                new ObjectFieldNode(DataField, runtimeValue.Data)
+                runtimeValue.Data.Fields
             );
         }
+
         /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
@@ -112,10 +113,20 @@ namespace HotChocolate.ApolloFederation
                 return true;
             }
 
-            if (resultValue is Representation)
+            if (resultValue is ObjectValueNode ovn)
             {
-                runtimeValue = resultValue;
-                return true;
+                var typeField = ovn.Fields.SingleOrDefault(field => field.Name.Value.Equals(TypeNameField, StringComparison.Ordinal));
+                if (typeField is not null && typeField.Value is StringValueNode svn)
+                {
+                    runtimeValue = new Representation
+                    {
+                        Data = ovn,
+                        Typename = svn.Value
+                    };
+                    return true;
+                }
+                runtimeValue = null;
+                return false;
             }
 
             runtimeValue = null;

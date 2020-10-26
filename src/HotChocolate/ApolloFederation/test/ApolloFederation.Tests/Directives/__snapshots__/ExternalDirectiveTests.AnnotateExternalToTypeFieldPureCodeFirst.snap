@@ -5,6 +5,7 @@
 type Query {
   entity(id: Int!): User!
   _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
 }
 
 type User @key(fields: "id") {
@@ -31,6 +32,9 @@ scalar Int
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any
 
 "Scalar representing a set of fields."
 scalar _FieldSet
