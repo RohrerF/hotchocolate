@@ -15,13 +15,6 @@ namespace Accounts.Models
         public string Id { get; set; }
         public string Name { get; set; }
         public string Username { get; set; }
-
-        // [ReferenceResolver]
-        // public async Task<User> GetAsync(string id)
-        // {
-        //     // some code ....
-        //     return new User();
-        // }
     }
 
     public static class UserReferenceResolver
