@@ -261,6 +261,107 @@ namespace HotChocolate.ApolloFederation
         }
 
         [Fact]
+        public void ParseLiteral()
+        {
+            // arrange
+            var type = new AnyType();
+            var objectValueNode = new ObjectValueNode(
+                new ObjectFieldNode(
+                    AnyType.TypeNameField,
+                    "test"
+                ),
+                new ObjectFieldNode(
+                    "foo",
+                    "bar"
+                )
+            );
+
+            // act
+            object? valueSyntax = type.ParseLiteral(objectValueNode);
+
+            // assert
+            var parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
+            Assert.Equal(
+                "test",
+                parsedRepresentation.Typename);
+            Assert.Equal(
+                objectValueNode,
+                parsedRepresentation.Data);
+        }
+
+        [Fact]
+        public void ParseLiteral_InvalidValue()
+        {
+            // arrange
+            var type = new AnyType();
+
+            // act
+            void Action() => type.ParseLiteral(new ObjectValueNode());
+
+            // assert
+            Assert.Throws<SerializationException>(Action);
+        }
+
+        [Fact]
+        public void ParseResult()
+        {
+            // arrange
+            var type = new AnyType();
+            var objectValueNode = new ObjectValueNode(
+                new ObjectFieldNode(
+                    AnyType.TypeNameField,
+                    "test"
+                ),
+                new ObjectFieldNode(
+                    "foo",
+                    "bar"
+                )
+            );
+            var representation = new Representation
+            {
+                Typename = "test",
+                Data = objectValueNode
+            };
+
+            // act
+            var parsedResult = type.ParseResult(representation);
+
+            // assert
+            Assert.Equal(
+                objectValueNode,
+                Assert.IsType<ObjectValueNode>(parsedResult));
+        }
+
+        [Fact]
+        public void ParseResult_Null()
+        {
+            // arrange
+            var type = new AnyType();
+
+            // act
+            var parsedResult = type.ParseResult(null);
+
+            // assert
+            Assert.Equal(
+                NullValueNode.Default,
+                parsedResult);
+        }
+
+        [Fact]
+        public void ParseResult_InvalidValue()
+        {
+            // arrange
+            var type = new AnyType();
+
+            // act
+            void Action() => type.ParseResult(new ObjectValueNode());
+
+            // assert
+            Assert.Throws<SerializationException>(Action);
+        }
+
+
+        [Fact]
         public void ParseValue_Null()
         {
             // arrange
